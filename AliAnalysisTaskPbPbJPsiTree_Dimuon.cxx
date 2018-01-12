@@ -457,7 +457,59 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon::UserExec(Option_t *)
   for (Int_t i = 0;i < ntracks;i++){
     printf("i=%d \n",i);
     AliAODTrack *mu0 = (AliAODTrack*)fAODEvent -> GetTrack(i);
-    fCharge[i] = mu0->Charge();
+    ////////////////////////////////////////////////////////////////////////////
+    if(!mu0 -> IsMuonTrack()) continue;
+    for(Int_t j = i+1;j < ntracks;j++){
+	     printf("j=%d \n",j);
+       AliAODTrack *mu1 = (AliAODTrack*)fAODEvent -> GetTrack(j);
+       if (!mu1 -> IsMuonTrack()) continue;
+       AliAODDimuon *dimu = new AliAODDimuon(mu0,mu1);
+       if(mu0 -> Charge() == mu1 -> Charge())continue; //selection of dimuon with charge == 0
+       else{
+         if(dimu -> Mass() > 2.){
+           fCharge[i] = mu0->Charge();
+           fPt[i] = mu0 -> Pt();
+           fPx[i] = mu0 -> Px();
+           fPy[i] = mu0 -> Py();
+           fPz[i] = mu0 -> Pz();
+           fY[i]  = mu0 -> Y();
+           fEta[i]= mu0 -> Eta();
+           fE[i] = mu0 -> E();
+           fMatchTrig[i]   = mu0 -> GetMatchTrigger();
+           fMatchTrigChi2[i] = mu0 -> GetChi2MatchTrigger();
+           fRAtAbsEnd[i] = mu0 -> GetRAtAbsorberEnd();
+
+           fDimuMass[numdimu] = dimu -> Mass();
+           fDimuPt[numdimu] = dimu -> Pt();
+           fDimuPx[numdimu] = dimu -> Px();
+           fDimuPy[numdimu] = dimu -> Py();
+           fDimuPz[numdimu] = dimu -> Pz();
+           fDimuY[numdimu] = dimu -> Y();
+           fDimuCharge[numdimu] = dimu -> Charge();
+           fDimuMu[numdimu][0] = i; fDimuMu[numdimu][1] = j;
+
+           fCostHE[numdimu] = CostHE(mu0,mu1);
+           fPhiHE[numdimu] = PhiHE(mu0,mu1);
+           fCostCS[numdimu] = CostCS(mu0,mu1);
+           fPhiCS[numdimu] = PhiCS(mu0,mu1);
+
+           if(mu0 -> GetMatchTrigger() > 1 || mu1 -> GetMatchTrigger() > 1){fDimuMatch[numdimu] = 1;}
+           if(mu0 -> GetMatchTrigger() > 1 && mu1 -> GetMatchTrigger() > 1){fDimuMatch[numdimu] = 2;}
+           numdimu++;
+           delete dimu;
+        }
+       }
+     }
+  }
+  fNMuons = nummu;
+  fNDimu = numdimu;
+  fOutputTree->Fill();
+  PostData(1,fOutputTree);
+}
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    /*fCharge[i] = mu0->Charge();
     fPt[i] = mu0 -> Pt();
     fPx[i] = mu0 -> Px();
     fPy[i] = mu0 -> Py();
@@ -472,56 +524,55 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon::UserExec(Option_t *)
     fRAtAbsEnd[i] = mu0 -> GetRAtAbsorberEnd();
 
     if(!mu0 -> IsMuonTrack()) continue;
-      for(Int_t j = i+1;j < ntracks;j++){
-	       printf("j=%d \n",j);
-         AliAODTrack *mu1 = (AliAODTrack*)fAODEvent -> GetTrack(j);
-         if (!mu1 -> IsMuonTrack()) continue;
-         AliAODDimuon *dimu = new AliAODDimuon(mu0,mu1);
+    for(Int_t j = i+1;j < ntracks;j++){
+	     printf("j=%d \n",j);
+       AliAODTrack *mu1 = (AliAODTrack*)fAODEvent -> GetTrack(j);
+       if (!mu1 -> IsMuonTrack()) continue;
+       AliAODDimuon *dimu = new AliAODDimuon(mu0,mu1);
 
-         // if(dimu->Mass()>1.8){
-         fDimuMass[numdimu] = dimu -> Mass();
-         fDimuPt[numdimu] = dimu -> Pt();
-         fDimuPx[numdimu] = dimu -> Px();
-         fDimuPy[numdimu] = dimu -> Py();
-         fDimuPz[numdimu] = dimu -> Pz();
-         fDimuY[numdimu] = dimu -> Y();
-         fDimuCharge[numdimu] = dimu -> Charge();
-         fDimuMu[numdimu][0] = i; fDimuMu[numdimu][1] = j;
+       fDimuMass[numdimu] = dimu -> Mass();
+       fDimuPt[numdimu] = dimu -> Pt();
+       fDimuPx[numdimu] = dimu -> Px();
+       fDimuPy[numdimu] = dimu -> Py();
+       fDimuPz[numdimu] = dimu -> Pz();
+       fDimuY[numdimu] = dimu -> Y();
+       fDimuCharge[numdimu] = dimu -> Charge();
+       fDimuMu[numdimu][0] = i; fDimuMu[numdimu][1] = j;
 
-         fCostHE[numdimu] = CostHE(mu0,mu1);
-         fPhiHE[numdimu] = PhiHE(mu0,mu1);
-         fCostCS[numdimu] = CostCS(mu0,mu1);
-         fPhiCS[numdimu] = PhiCS(mu0,mu1);
+       fCostHE[numdimu] = CostHE(mu0,mu1);
+       fPhiHE[numdimu] = PhiHE(mu0,mu1);
+       fCostCS[numdimu] = CostCS(mu0,mu1);
+       fPhiCS[numdimu] = PhiCS(mu0,mu1);
 
-         // printf("dimuon Pt %f\n",dimu->Pt());
-         // printf("dimuon Px %f\n",dimu->Px());
-         // printf("dimuon Py %f\n",dimu->Py());
-         // printf("dimuon Pz %f\n",dimu->Pz());
-         // printf("dimuon Y %f\n",dimu->Y());
-         // printf("dimuon mass %f\n",dimu->Mass());
-         // printf("dimuon charge %d\n",dimu->Charge());
+       // printf("dimuon Pt %f\n",dimu->Pt());
+       // printf("dimuon Px %f\n",dimu->Px());
+       // printf("dimuon Py %f\n",dimu->Py());
+       // printf("dimuon Pz %f\n",dimu->Pz());
+       // printf("dimuon Y %f\n",dimu->Y());
+       // printf("dimuon mass %f\n",dimu->Mass());
+       // printf("dimuon charge %d\n",dimu->Charge());
 
-         if(mu0 -> GetMatchTrigger() > 1 || mu1 -> GetMatchTrigger() > 1){
-           fDimuMatch[numdimu] = 1;
-         }
-         if(mu0 -> GetMatchTrigger() > 1 && mu1 -> GetMatchTrigger() > 1){
-           fDimuMatch[numdimu] = 2;
-         }
-         numdimu++;
-        // delete mu1;
-        // delete dimu;
-        // } // mass cut
-        delete dimu;
-        // delete mu1;
-      }
-        nummu++;
-        // delete mu0;
+       if(mu0 -> GetMatchTrigger() > 1 || mu1 -> GetMatchTrigger() > 1){
+         fDimuMatch[numdimu] = 1;
+       }
+       if(mu0 -> GetMatchTrigger() > 1 && mu1 -> GetMatchTrigger() > 1){
+         fDimuMatch[numdimu] = 2;
+       }
+       numdimu++;
+       // delete mu1;
+       // delete dimu;
+       // } // mass cut
+       delete dimu;
+       // delete mu1;
+     }
+     nummu++;
+     // delete mu0;
   }
-  fNMuons =nummu;
-  fNDimu=numdimu;
+  fNMuons = nummu;
+  fNDimu = numdimu;
   fOutputTree->Fill();
   PostData(1,fOutputTree);
-}
+}*/
 //______________________________________________________________________________
 Double_t CostHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
   Double_t EBeam = 2510;
