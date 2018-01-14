@@ -458,7 +458,7 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon::UserExec(Option_t *)
     printf("i=%d \n",i);
     AliAODTrack *mu0 = (AliAODTrack*)fAODEvent -> GetTrack(i);
     ////////////////////////////////////////////////////////////////////////////
-    if(!mu0 -> IsMuonTrack()) continue;
+    /*if(!mu0 -> IsMuonTrack()) continue;
     for(Int_t j = i+1;j < ntracks;j++){
 	     printf("j=%d \n",j);
        AliAODTrack *mu1 = (AliAODTrack*)fAODEvent -> GetTrack(j);
@@ -505,11 +505,9 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon::UserExec(Option_t *)
   fNDimu = numdimu;
   fOutputTree->Fill();
   PostData(1,fOutputTree);
-}
-
-
+}*/
     ////////////////////////////////////////////////////////////////////////////
-    /*fCharge[i] = mu0->Charge();
+    fCharge[i] = mu0 -> Charge();
     fPt[i] = mu0 -> Pt();
     fPx[i] = mu0 -> Px();
     fPy[i] = mu0 -> Py();
@@ -572,7 +570,7 @@ void AliAnalysisTaskPbPbJPsiTree_Dimuon::UserExec(Option_t *)
   fNDimu = numdimu;
   fOutputTree->Fill();
   PostData(1,fOutputTree);
-}*/
+}
 //______________________________________________________________________________
 Double_t CostHE(AliAODTrack* Mu0, AliAODTrack* Mu1){
   Double_t EBeam = 2510;
